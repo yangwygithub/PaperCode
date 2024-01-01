@@ -1,0 +1,35 @@
+task: detection
+
+num_classes: 10
+# return_mask: False
+remap_mscoco_category: False
+
+train_dataloader: 
+  type: DataLoader
+  dataset: 
+    type: SODAADetection
+    img_folder: /root/autodl-tmp/code/VOC_dateset/SODA-A/Splited/train_splited/Images/
+    ann_file: /root/autodl-tmp/code/VOC_dateset/SODA-A/annotations/train.json
+    transforms:
+      type: Compose
+      ops: ~
+  shuffle: True
+  batch_size: 32
+  num_workers: 4
+  drop_last: True 
+
+
+val_dataloader:
+  type: DataLoader
+  dataset: 
+    type: SODAADetection
+    img_folder: /root/autodl-tmp/code/VOC_dateset/SODA-A/Splited/val_splited/Images/
+    ann_file: /root/autodl-tmp/code/VOC_dateset/SODA-A/annotations/val.json
+    transforms:
+      type: Compose
+      ops: ~ 
+
+  shuffle: False
+  batch_size: 8
+  num_workers: 4
+  drop_last: False

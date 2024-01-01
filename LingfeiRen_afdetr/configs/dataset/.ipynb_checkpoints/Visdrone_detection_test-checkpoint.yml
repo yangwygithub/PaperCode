@@ -1,0 +1,35 @@
+task: detection
+
+num_classes: 12
+# return_mask: False
+remap_mscoco_category: False
+
+train_dataloader: 
+  type: DataLoader
+  dataset: 
+    type: VisdroneDetection
+    img_folder: /root/autodl-tmp/code/VOC_dateset/VisDrone/train_int/
+    ann_file: /root/autodl-tmp/code/VOC_dateset/VisDrone/annotations/eip_meanshift_train_py.json
+    transforms:
+      type: Compose
+      ops: ~
+  shuffle: True
+  batch_size: 32
+  num_workers: 4
+  drop_last: True 
+
+
+val_dataloader:
+  type: DataLoader
+  dataset: 
+    type: VisdroneDetection
+    img_folder: autodl-tmp/code/VOC_dateset/VisDrone/test/
+    ann_file: autodl-tmp/code/VOC_dateset/VisDrone/annotations/eip_meanshift_test_py.json
+    transforms:
+      type: Compose
+      ops: ~ 
+
+  shuffle: False
+  batch_size: 8
+  num_workers: 4
+  drop_last: False
