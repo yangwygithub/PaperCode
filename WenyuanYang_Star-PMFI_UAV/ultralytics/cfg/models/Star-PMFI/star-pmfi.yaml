@@ -1,0 +1,50 @@
+# Parameters
+nc: 10 # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+
+# YOLOv8.0n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]  # 1-P2/4
+  - [-1, 3, C2f_Star_CAA, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]]  # 3-P3/8
+  - [-1, 6, C2f_Star_CAA, [256, True]]
+  - [-1, 1, Conv, [512, 3, 2]]  # 5-P4/16
+  - [-1, 6, C2f_Star_CAA, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]]  # 7-P5/32
+  - [-1, 3, C2f_Star_CAA, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]  # 9
+  - [-1, 1, PSA, [1024]] # 10
+# YOLOv8.0n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 3, C2f_Star_CAA, [512]]  # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 3, C2f_Star_CAA, [256]]  # 16 (P3/8-small)
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 2], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 3, C2f_Star_CAA, [128]]  # 19 (P3/8-small)
+
+
+  - [[10, 13, 16, 19], 1, SimFusion_4in, []] # 20    Low_FAM
+  - [-1, 1, IFM, [[64, 32]]] # 21    Low_IFM
+
+  - [10, 1, Conv, [512, 1, 1]] # 22
+  - [[13, 16, -1], 1, SimFusion_3in, [512]] # 23  Low_LAF
+  - [[-1, 21], 1, InjectionMultiSum_Auto_pool, [512, [64, 32], 0]] # 24   Inject
+  - [-1, 3, C2f_Star_CAA, [512]] # 25
+
+  - [13, 1, Conv, [256, 1, 1]] # 26
+  - [[19, 16, -1], 1, SimFusion_3in, [256]] # 27   Low_LAF
+  - [[-1, 21], 1, InjectionMultiSum_Auto_pool, [256, [64, 32], 1]] # 28   Inject
+  - [-1, 3, C2f_Star_CAA, [256]] # 29
+
+
+  - [[13, 16, 19, 25, 29], 1, v10Detect, [nc]] # Detect(P3, P4, P5)
